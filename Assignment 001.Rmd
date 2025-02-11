@@ -14,4 +14,59 @@ p_load(tidyverse, readr, janitor, broom, tidymodels)
 train <- read_csv("data/train.csv")
 test <- read_csv("data/test.csv")
 
+# Clean Data
+train <- clean_names(train, case = 'big_camel')
+test <- clean_names(test, case = 'big_camel')
+
+train <- train %>% mutate(across(where(is.character), as.factor))
+test <- test %>% mutate(across(where(is.character), as.factor))
+
 ```
+
+```{r}
+# Create first model
+# Create Recipe
+rec_1 <- recipe(SalePrice ~ . , data = train)
+
+# Define Processing Steps
+proc_1 <- rec_1 %>% 
+  # Mean imputation for numeric predictors
+  step_impute_mean(all_predictors() & all_numeric()) %>% 
+  # KNN imputation for categorical predictors
+  step_impute_knn(all_predictors() & all_nominal(), neighbors = 5) %>%
+  # Create dummies for categorical variables
+  step_dummy(all_predictors() & all_nominal()) %>% 
+  step_impute_mean(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors()) %>% 
+  prep()
+
+# Apply processing to data
+train_1 <- proc_1 %>% juice() 
+test_1 <- bake(proc_1, new_data = test)  # Go to office hours and ask why this isnt working ; apply recipe for training data to testing data
+  
+# Create regression model
+reg_1 <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(SalePrice ~. , data = train_1)
+
+# Predict
+test_1 <- test %>% 
+  mutate(SalePrice = predict(reg_1, new_data = test))
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
