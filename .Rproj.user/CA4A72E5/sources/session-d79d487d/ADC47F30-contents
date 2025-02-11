@@ -1,0 +1,17 @@
+---
+title: "Assignment 001"
+author: "Tom Ben-Shahar"
+date: "February 13, 2025"
+output: pdf_document
+---
+
+```{r}
+# Load Packages
+library(pacman)
+p_load(tidyverse, readr, janitor, broom, tidymodels)
+
+# Load Data
+train <- read_csv("data/train.csv")
+test <- read_csv("data/test.csv")
+
+```
