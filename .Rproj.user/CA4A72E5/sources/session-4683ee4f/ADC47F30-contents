@@ -5,10 +5,12 @@ date: "February 13, 2025"
 output: pdf_document
 ---
 
+## Setup
 ```{r}
 # Load Packages
 library(pacman)
-p_load(tidyverse, readr, janitor, broom, tidymodels, magrittr, kknn)
+p_load(tidyverse, readr, janitor, broom, tidymodels, magrittr, kknn, recipes)
+library(tidymodels)
 
 # Load Data
 train <- read_csv("data/train.csv")
@@ -26,11 +28,12 @@ test %<>% mutate(SalePrice = NA)
 
 ```
 
+
+## Model Specification
 ```{r}
 # Create first model
 # Create Recipe
 #setdiff(names(test), names(train))
-
 rec_1 <- recipe(SalePrice ~ ., data = train)
 
 # Define Processing Steps
@@ -70,7 +73,7 @@ mod_out_1 <- test %>%
   select("Id", "SalePrice")
 
 # Create Second Model
-mod_2 <- nearest_neighbor(neighbors = 8) %>% 
+mod_2 <- nearest_neighbor(neighbors = 5) %>% 
   set_engine("kknn") %>% 
   set_mode("regression")
 
@@ -87,7 +90,102 @@ mod_out_2 <- test %>%
 # Write model outputs
 write.csv(file = "data/model_1.csv", mod_out_1, row.names = FALSE) # Model 1 wins, placing me at 2848 on the kaggle leaderboard!
 write.csv(file = "data/model_2.csv", mod_out_2, row.names = FALSE)
+
+
   
+```
+
+## Cross Validation
+
+```{r}
+set.seed(65198153)
+
+# Assign folds
+set.seed(123)  # Ensure reproducibility
+cv_sample <- sample(rep(1:5, length.out = as.integer(nrow(train))))
+train$fold <- cv_sample
+
+train %<>% mutate(id = Id)
+
+# Initialize dataframe for predictions
+#cv_test_hat_1 <- train %>% select(id)  # Keeps IDs for merging later
+
+for (i in 1:5) {
+  train_fold <- train %>% filter(fold != i)
+  test_fold <- train %>% filter(fold == i)
+  
+  #print(class(test_fold)) # Should be "data.frame" or "tbl_df"
+  #print(str(test_fold))    # Should show structured columns
+
+
+  # Print debugging info
+  #print(paste("Fold:", i, "Train size:", nrow(train_fold), "Test size:", nrow(test_fold)))
+
+  # Skip if no test data
+  if (nrow(test_fold) == 0) {
+    print(paste("Skipping fold", i, "as test set is empty"))
+    next
+  }
+
+  # Fit models
+  workflow_i_model_1 <- workflow() %>% 
+    add_model(reg_1) %>% 
+    add_recipe(rec_1) %>% 
+    fit(data = train_fold)
+
+  workflow_i_model_2 <- workflow() %>% 
+    add_model(mod_2) %>% 
+    add_recipe(rec_1) %>% 
+    fit(data = train_fold)
+
+  # Generate column name
+  col_name_1 <- paste0("mod_1_fold_", i)
+  col_name_2 <- paste0("mod_2_fold_", i)
+
+  # Predict and store results
+  preds_1 <- workflow_i_model_1 %>% predict(new_data = test_fold) %>% mutate(id = test_fold$id)
+  preds_2 <- workflow_i_model_2 %>% predict(new_data = test_fold) %>% mutate(id = test_fold$id)
+  
+  preds_1 %<>% rename(!!col_name_1 := .pred)
+  preds_2 %<>% rename(!!col_name_2 := .pred)
+
+  #print(head(preds))  # Debug: Check predictions structure
+
+  #cv_test_hat_1[[col_name]] <- preds %>% pull(.pred)  # Extract predictions
+  
+  train <- train %>%
+    left_join(preds_1 %>% select(id, !!col_name_1), by = "id") %>%
+    #rename(!!col_name_1 := .pred) %>% 
+    left_join(preds_2 %>% select(id, !!col_name_2), by = "id")# %>%
+    #rename(!!col_name_2 := .pred)
+
+}
+
+# Combine columns
+train <- train %>%
+  rename(mod_1_fold_1 = mod_1_fold_1.x) %>% 
+  select(-mod_1_fold_1.y) %>% 
+  mutate(
+    mod_1_pred = case_when(
+      fold == 1 ~ mod_1_fold_1,
+      fold == 2 ~ mod_1_fold_2.x,
+      fold == 3 ~ mod_1_fold_3.x,
+      fold == 4 ~ mod_1_fold_4.x,
+      fold == 5 ~ mod_1_fold_5.x
+    ),
+    mod_2_pred = case_when(
+      fold == 1 ~ mod_2_fold_1.x,
+      fold == 2 ~ mod_2_fold_2.x,
+      fold == 3 ~ mod_2_fold_3.x,
+      fold == 4 ~ mod_2_fold_4.x,
+      fold == 5 ~ mod_2_fold_5.x
+    )
+  )
+
+#not sure where the .x and .y stuff came from...
+
+
+
 
 
 ```

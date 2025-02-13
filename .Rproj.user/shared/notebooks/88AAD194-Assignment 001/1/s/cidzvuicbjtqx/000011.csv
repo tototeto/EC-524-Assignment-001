@@ -1,7 +1,0 @@
-"0","# Create first model"
-"0","# Create Recipe"
-"0","#setdiff(names(test), names(train))"
-"0","rec_1 <- recipe(SalePrice ~ ., data = train)"
-"2","Error in recipe(SalePrice ~ ., data = train) : 
-  could not find function ""recipe""
-"

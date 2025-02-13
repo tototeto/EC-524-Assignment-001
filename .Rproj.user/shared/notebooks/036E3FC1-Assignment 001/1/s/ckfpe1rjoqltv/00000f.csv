@@ -1,0 +1,37 @@
+"0","# Load Packages"
+"0","library(pacman)"
+"0","p_load(tidyverse, readr, janitor, broom, tidymodels, magrittr, kknn, recipes)"
+"0","library(tidymodels)"
+"0",""
+"0","# Load Data"
+"0","train <- read_csv(""data/train.csv"")"
+"2","[1mRows: [22m[34m1460[39m [1mColumns: [22m[34m81[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m──────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m (43): MSZoning, Street, Alley, LotShape, LandContour, Utilities, LotConfig, LandSlope, Neighborhood, Condi...
+[32mdbl[39m (38): Id, MSSubClass, LotFrontage, LotArea, OverallQual, OverallCond, YearBuilt, YearRemodAdd, MasVnrArea,..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","test <- read_csv(""data/test.csv"")"
+"2","[1mRows: [22m[34m1459[39m [1mColumns: [22m[34m80[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m──────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m (43): MSZoning, Street, Alley, LotShape, LandContour, Utilities, LotConfig, LandSlope, Neighborhood, Condi...
+[32mdbl[39m (37): Id, MSSubClass, LotFrontage, LotArea, OverallQual, OverallCond, YearBuilt, YearRemodAdd, MasVnrArea,..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","train %<>% rename(id = Id)"
+"0","test %<>% rename(id = Id)"
+"0",""
+"0","# Clean Data"
+"0","train <- clean_names(train, case = 'big_camel')"
+"0","test <- clean_names(test, case = 'big_camel')"
+"0",""
+"0","train <- train %>% mutate(across(where(is.character), as.factor))"
+"0","test <- test %>% mutate(across(where(is.character), as.factor))"
+"0",""
+"0","test %<>% mutate(SalePrice = NA)"
+"0",""
+"0",""
