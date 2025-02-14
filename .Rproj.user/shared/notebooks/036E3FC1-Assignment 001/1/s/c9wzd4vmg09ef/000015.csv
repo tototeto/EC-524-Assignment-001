@@ -1165,8 +1165,6 @@
 "2","Warning: skipping variable with zero or non-finite range."
 "0","# Combine columns"
 "0","train <- train %>%"
-"0","  rename(mod_1_fold_1 = mod_1_fold_1.x) %>% "
-"0","  select(-mod_1_fold_1.y) %>% "
 "0","  mutate("
 "0","    mod_1_pred = case_when("
 "0","      fold == 1 ~ mod_1_fold_1,"
@@ -1183,15 +1181,6 @@
 "0","      fold == 5 ~ mod_2_fold_5"
 "0","    )"
 "0","  )"
-"1","[1m[33mError[39m in `mutate()`:[22m
-[38;5;250m[36mℹ[38;5;250m In argument: `mod_1_pred = case_when(...)`.[39m
-[1mCaused by error in `case_when()`:[22m
-[38;5;250m[33m![38;5;250m Failed to evaluate the right-hand side of formula 2.[39m
-[1mCaused by error:[22m
-[33m![39m object 'mod_1_fold_2' not found
-Backtrace:
-[90m  1. [39m... %>% ...
-[90m  9. [39m[1m[94mdplyr::case_when([39m[22m...[1m[94m)[39m[22m
-[90m 10. [39mdplyr:::case_formula_evaluate(...)
-[90m 12. [39m[1mrlang[22m::eval_tidy(pair$rhs, env = default_env)
-"
+"0",""
+"0","#not sure where the .x and .y stuff came from..."
+"0",""

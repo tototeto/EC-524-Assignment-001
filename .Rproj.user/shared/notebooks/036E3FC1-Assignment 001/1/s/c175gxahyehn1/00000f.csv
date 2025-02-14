@@ -58,4 +58,6 @@
 "0","# Write model outputs"
 "0","write.csv(file = ""data/model_1.csv"", mod_out_1, row.names = FALSE) # Model 1 wins, placing me at 2848 on the kaggle leaderboard!"
 "0","write.csv(file = ""data/model_2.csv"", mod_out_2, row.names = FALSE)"
+"0",""
+"0",""
 "0","  "

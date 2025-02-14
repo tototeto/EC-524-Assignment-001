@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ## Setup
-```{r}
+```{r warning=FALSE}
 # Load Packages
 library(pacman)
 p_load(tidyverse, readr, janitor, broom, tidymodels, magrittr, kknn, recipes)
@@ -30,7 +30,7 @@ test %<>% mutate(SalePrice = NA)
 
 
 ## Model Specification
-```{r}
+```{r warning=FALSE}
 # Create first model
 # Create Recipe
 #setdiff(names(test), names(train))
@@ -97,11 +97,10 @@ write.csv(file = "data/model_2.csv", mod_out_2, row.names = FALSE)
 
 ## Cross Validation
 
-```{r}
+```{r warning=FALSE}
 set.seed(65198153)
 
 # Assign folds
-set.seed(123)  # Ensure reproducibility
 cv_sample <- sample(rep(1:5, length.out = as.integer(nrow(train))))
 train$fold <- cv_sample
 
@@ -163,32 +162,70 @@ for (i in 1:5) {
 
 # Combine columns
 train <- train %>%
-  rename(mod_1_fold_1 = mod_1_fold_1.x) %>% 
-  select(-mod_1_fold_1.y) %>% 
   mutate(
     mod_1_pred = case_when(
       fold == 1 ~ mod_1_fold_1,
-      fold == 2 ~ mod_1_fold_2.x,
-      fold == 3 ~ mod_1_fold_3.x,
-      fold == 4 ~ mod_1_fold_4.x,
-      fold == 5 ~ mod_1_fold_5.x
+      fold == 2 ~ mod_1_fold_2,
+      fold == 3 ~ mod_1_fold_3,
+      fold == 4 ~ mod_1_fold_4,
+      fold == 5 ~ mod_1_fold_5
     ),
     mod_2_pred = case_when(
-      fold == 1 ~ mod_2_fold_1.x,
-      fold == 2 ~ mod_2_fold_2.x,
-      fold == 3 ~ mod_2_fold_3.x,
-      fold == 4 ~ mod_2_fold_4.x,
-      fold == 5 ~ mod_2_fold_5.x
+      fold == 1 ~ mod_2_fold_1,
+      fold == 2 ~ mod_2_fold_2,
+      fold == 3 ~ mod_2_fold_3,
+      fold == 4 ~ mod_2_fold_4,
+      fold == 5 ~ mod_2_fold_5
     )
   )
 
 #not sure where the .x and .y stuff came from...
 
+```
 
+### RMSE
 
+```{r warning=FALSE}
+rmse_df <- data.frame(mod1 = 1:5, mod2 = 1:5) 
 
+for (i in 1:5) {
+  test_fold <- train %>% filter(fold == i)
+  rmse_df$mod1[i] <- rmse(test_fold, truth = SalePrice, estimate = mod_1_pred) %>% pull(.estimate)
+  rmse_df$mod2[i] <- rmse(test_fold, truth = SalePrice, estimate = mod_2_pred) %>% pull(.estimate)
+}
+
+avg_rmse_df_1 <- mean(rmse_df$mod1)
+avg_rmse_df_2 <- mean(rmse_df$mod2)
+sd_rmse_df_1 <-sd(rmse_df$mod1)
+sd_rmse_df_2 <-sd(rmse_df$mod2)
+
+avg_rmse_df_1
+avg_rmse_df_2
+sd_rmse_df_1
+sd_rmse_df_2
 
 ```
+#### 7
+
+Model 1 RMSE < Model 2 RMSE
+
+Model 1 RMSE SD > Model 2 RMSE SD
+
+#### 8
+
+It thus appears that model 1 (LM) is superior, as it has lower RMSE.
+
+#### 9 
+
+Cross validation gives a more robust account of model performance.
+
+#### 10
+
+Cross validation is more reliable as it tests several validation sets, not just one.
+
+#### 11
+
+While model 1 has lower RMSE, it has higher variability. When I ran this with a different seed, Model 1 underperformed. This validation method is thus not necessarily pointing at the ideal model.
 
 
 
